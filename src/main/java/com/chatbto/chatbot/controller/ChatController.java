@@ -16,7 +16,7 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    @PostMapping
+    @PostMapping("/send")
     public ChatResponse chat(@RequestBody ChatRequest request) {
         String response = chatService.handleUserMessage(request.getSessionId(), request.getMessage());
         return new ChatResponse(response);
