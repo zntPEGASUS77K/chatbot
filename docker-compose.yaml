@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: chatbot-postgres
+    environment:
+      POSTGRES_DB: chatbot_db
+      POSTGRES_USER: chatbot_user
+      POSTGRES_PASSWORD: chatbot_pass
+    ports:
+      - "5400:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - chatbot-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatbot-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/chatbot_db
+      SPRING_DATASOURCE_USERNAME: chatbot_user
+      SPRING_DATASOURCE_PASSWORD: chatbot_pass
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - chatbot-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chatbot-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+    ports:
+      - "3009:3009"
+    depends_on:
+      - backend
+    networks:
+      - chatbot-network
+
+volumes:
+  postgres_data:
+
+networks:
+  chatbot-network:
+    driver: bridge
